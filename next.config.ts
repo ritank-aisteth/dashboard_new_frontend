@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Emit the minimal Node.js server bundle used by the production container.
+  output: "standalone",
   poweredByHeader: false,
   async headers() {
     return [

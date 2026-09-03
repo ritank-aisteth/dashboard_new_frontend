@@ -24,6 +24,22 @@ npm run dev
 
 Open `http://127.0.0.1:3000`.
 
+## Containers
+
+The frontend and the sibling `backend_dashboard` service each have a production
+Dockerfile. To build and run both services locally, make sure `.env.local` exists
+here and `.env` exists in `../backend_dashboard`, then run:
+
+```powershell
+docker compose up --build
+```
+
+The frontend is available at `http://localhost:3000` and the backend health check
+at `http://localhost:8000/health`. Environment files are used only at container
+runtime and are excluded from both image build contexts.
+
+For Artifact Registry and Cloud Run commands, see [GCP deployment](DEPLOYMENT_GCP.md).
+
 ## Verification
 
 ```powershell
