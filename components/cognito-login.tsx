@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import {
-  AuthenticationDetails,
   CognitoUser,
   CognitoUserPool,
   type CognitoUserSession,
@@ -133,11 +132,21 @@ export function CognitoLogin(): React.ReactNode {
     setNotice("");
     setBusy(true);
     try {
-      const user = await configuredUser(username.trim());
-      userRef.current = user;
-      user.authenticateUser(new AuthenticationDetails({ Username: username.trim(), Password: password }), callbacks());
+      const response = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: username.trim(), password }),
+      });
+      if (response.ok) {
+        window.location.reload();
+        return;
+      }
+      setBusy(false);
+      if (response.status === 401) setError("Cognito rejected the username or password. Use the exact Cognito username if email sign-in is not enabled.");
+      else if (response.status === 403) setError("Your Cognito account needs confirmation, a password change, or dashboard access.");
+      else if (response.status === 429) setError("Too many attempts. Please wait before trying again.");
+      else setError("Authentication is temporarily unavailable.");
     } catch {
-      memoryStorage.clear();
       setBusy(false);
       setError("Authentication is temporarily unavailable.");
     }

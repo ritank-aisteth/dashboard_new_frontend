@@ -36,6 +36,16 @@ export class DashboardApiUnauthorizedError extends Error {
   }
 }
 
+export class DashboardAuthenticationError extends Error {
+  readonly status: number;
+
+  constructor(status: number) {
+    super("Authentication could not be completed");
+    this.name = "DashboardAuthenticationError";
+    this.status = status;
+  }
+}
+
 function backendBaseUrl(): URL {
   const configured = process.env["DASHBOARD_API_BASE_URL"] ?? "http://127.0.0.1:8000";
   const url = new URL(configured);
@@ -48,6 +58,29 @@ function backendBaseUrl(): URL {
 
 function isRecord(value: unknown): value is JsonRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export async function authenticateDashboardUser(email: string, password: string): Promise<{ idToken: string; expiresIn: number }> {
+  const url = new URL("/api/v1/auth/me", backendBaseUrl());
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      cache: "no-store",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (!response.ok) throw new DashboardAuthenticationError(response.status);
+    const value: unknown = await response.json();
+    if (!isRecord(value)) throw new DashboardAuthenticationError(503);
+    const idToken = value["access_token"];
+    const expiresIn = value["expires_in"];
+    if (typeof idToken !== "string" || idToken.length < 100) throw new DashboardAuthenticationError(503);
+    return { idToken, expiresIn: typeof expiresIn === "number" && expiresIn > 0 ? expiresIn : 3600 };
+  } catch (error: unknown) {
+    if (error instanceof DashboardAuthenticationError) throw error;
+    throw new DashboardAuthenticationError(503);
+  }
 }
 
 function stringField(record: JsonRecord, key: string, fallback = ""): string {
