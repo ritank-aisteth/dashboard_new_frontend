@@ -24,6 +24,8 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'APP_BASE_URL=https://aisteth-frontend-xm67mze56q-el.a.run.app,DASHBOARD_API_BASE_URL=https://aisteth-backend-586282894333.asia-south1.run.app,COGNITO_USER_POOL_ID=ap-south-1_NxpJ1TXK3,COGNITO_CLIENT_ID=7f37f0ulqhokcj5750rl4jurge,COGNITO_DOMAIN=https://dashboard-test.auth.ap-south-1.amazoncognito.com'
 
 images:
   - 'asia-south1-docker.pkg.dev/$PROJECT_ID/aisteth/aisteth-frontend:$COMMIT_SHA'
